@@ -8,8 +8,8 @@ import sklearn.linear_model as lm
 from sklearn import model_selection
 from toolbox_02450 import rlr_validate
 
-doc = xlrd.open_workbook('../Raisins/Raisin_Dataset.xls').sheet_by_index(0)
-#doc = xlrd.open_workbook(r"C:\Users\Johannes\iCloudDrive\Desktop\Machine Learning\Raisin_Dataset.xls").sheet_by_index(0)
+#doc = xlrd.open_workbook('../Raisins/Raisin_Dataset.xls').sheet_by_index(0)
+doc = xlrd.open_workbook(r"C:\Users\Johannes\iCloudDrive\Desktop\Machine Learning\Raisin_Dataset.xls").sheet_by_index(0)
 
 attributeNames = doc.row_values(rowx=0, start_colx=0, end_colx=7)
 
@@ -44,3 +44,4 @@ xlabel('Regularization factor')
 ylabel('Squared error (crossvalidation)')
 legend(['Train error','Validation error'])
 grid()
+show()

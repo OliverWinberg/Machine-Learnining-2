@@ -59,7 +59,7 @@ CV = model_selection.KFold(K, shuffle=True)
 
 # Values of lambda
 # lambdas = np.power(10.,np.arange(0,10,0.01))
-lambdas = np.power(10.,range(-10,5))
+lambdas = np.power(10.,range(-5,5))
 
 
 # Initialize variables
@@ -77,8 +77,9 @@ w_noreg = np.empty((M,K))
 
 k=0
 
+errors = []
+lamdasToPrint = []
 for train_index, test_index in CV.split(X,y):
-    
     # extract training and test set for current CV fold
     X_train = X[train_index]
     y_train = y[train_index]
@@ -86,6 +87,7 @@ for train_index, test_index in CV.split(X,y):
     y_test = y[test_index]
     internal_cross_validation = 10    
     opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, y, lambdas, internal_cross_validation)
+    lamdasToPrint.append(opt_lambda)
     # Standardize outer fold based on training set, and save the mean and standard
     # deviations since they're part of the model (they would be needed for
     # making new predictions) - for brevity we won't always store these in the scripts
@@ -115,6 +117,7 @@ for train_index, test_index in CV.split(X,y):
     # Compute mean squared error without regularization
     Error_train[k] = np.square(y_train-X_train @ w_noreg[:,k]).sum(axis=0)/y_train.shape[0]
     Error_test[k] = np.square(y_test-X_test @ w_noreg[:,k]).sum(axis=0)/y_test.shape[0]
+    errors.append(Error_test[k][0])
     # OR ALTERNATIVELY: you can use sklearn.linear_model module for linear regression:
     #m = lm.LinearRegression().fit(X_train, y_train)
     #Error_train[k] = np.square(y_train-m.predict(X_train)).sum()/y_train.shape[0]
@@ -164,5 +167,6 @@ print('Weights in last fold:')
 for m in range(M):
     print('{:>15} {:>15}'.format(attributeNames[m], np.round(w_rlr[m,-1],2)))
 
-
+print(errors)
+print(lamdasToPrint)
 

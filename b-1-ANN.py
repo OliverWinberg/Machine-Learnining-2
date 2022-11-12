@@ -43,12 +43,12 @@ if do_pca_preprocessing:
 
 
 # Parameters for neural network classifier
-n_hidden_units = 3      # number of hidden units
+n_hidden_units = 4     # number of hidden units
 n_replicates = 1        # number of networks trained in each k-fold
-max_iter = 3000
+max_iter = 5000
 
 # K-fold crossvalidation
-K = 3                   # only three folds to speed up this example
+K = 10                   # only three folds to speed up this example
 CV = model_selection.KFold(K, shuffle=True)
 
 # Setup figure for display of learning curves and error rates in fold
@@ -67,7 +67,9 @@ loss_fn = torch.nn.MSELoss() # notice how this is now a mean-squared-error loss
 
 print('Training model of type:\n\n{}\n'.format(str(model())))
 errors = [] # make a list for storing generalizaition error in each loop
+errorsToPrint = []
 for (k, (train_index, test_index)) in enumerate(CV.split(X,y)): 
+    errorsOut = []
     CV2 = model_selection.KFold(K, shuffle=True)
     X_train = torch.Tensor(X[train_index,:])
     y_train = torch.Tensor(y[train_index])
@@ -101,7 +103,8 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
         se = (y_test_est.float()-y_test2.float())**2 # squared error
         mse = (sum(se).type(torch.float)/len(y_test2)).data.numpy() #mean
         errors.append(mse) # store error rate for current CV fold 
-    
+        errorsOut.append(mse)
+
         # Display the learning curve for the best net in the current fold
         h, = summaries_axes[0].plot(learning_curve, color=color_list[k2])
         h.set_label('CV fold {0}'.format(k2+1))
@@ -110,6 +113,8 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
         summaries_axes[0].set_ylabel('Loss')
         summaries_axes[0].set_title('Learning curves')
     print('\nEstimated generalization error, RMSE: {0}'.format(round(np.sqrt(np.mean(errors)), 4)))
+    errorsToPrint.append(min(errorsOut))
+
 
 # Display the MSE across folds
 summaries_axes[1].bar(np.arange(1, K*K+1), np.squeeze(np.asarray(errors)), color=color_list)
@@ -145,3 +150,7 @@ plt.ylabel('Estimated value')
 plt.grid()
 
 plt.show()
+
+
+for error in errorsToPrint:
+    print(error)
