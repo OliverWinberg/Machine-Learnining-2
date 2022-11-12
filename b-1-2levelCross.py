@@ -16,7 +16,7 @@ from scipy import stats
 # doc = xlrd.open_workbook('Raisin_Dataset.xls').sheet_by_index(0)
 doc = xlrd.open_workbook(r"C:\Users\Johannes\iCloudDrive\Desktop\Machine Learning\Raisin_Dataset.xls").sheet_by_index(0)
 
-attributeNames = doc.row_values(rowx=0, start_colx=0, end_colx=7)
+attributeNames = doc.row_values(rowx=0, start_colx=0, end_colx=8)
 
 classLabels = doc.col_values(7,1,901) 
 
@@ -25,7 +25,6 @@ classLabels = doc.col_values(7,1,901)
 X = np.empty((900,7))
 for i in range(7):
     X[:,i] = np.array(doc.col_values(i,1,901)).T
-
 # for i in range(900):
 #     if(classLabels[i] == "Kecimen"):
 #         X[i,7] = 1
@@ -44,12 +43,13 @@ X = stats.zscore(X)
 idx = attributeNames.index('Area')
 y = X[:,idx]
 X = np.delete(X,idx,1)
+attributeNames = np.delete(attributeNames,idx)
 N, M = X.shape
 
 # Add offset attribute
 #X = np.concatenate((np.ones((X.shape[0],1)),X),1)
 #attributeNames = [u'Offset']+attributeNames
-#M = M+1
+# M = M+1
 
 ## Crossvalidation
 # Create crossvalidation partition for evaluation
@@ -58,7 +58,7 @@ CV = model_selection.KFold(K, shuffle=True)
 #CV = model_selection.KFold(K, shuffle=False)
 
 # Values of lambda
-#lambdas = np.power(10.,np.arange(0,10,0.01))
+# lambdas = np.power(10.,np.arange(0,10,0.01))
 lambdas = np.power(10.,range(-10,5))
 
 

@@ -23,12 +23,12 @@ idx = attributeNames.index('Area')
 X = np.empty((900,7))
 for i in range(7):
     X[:,i] = np.array(doc.col_values(i,1,901)).T
+# Normalize data
+X = stats.zscore(X)
 y = X[:,[idx]]
 N, M = X.shape
 C = 2
 
-# Normalize data
-X = stats.zscore(X)
                 
 ## Normalize and compute PCA (change to True to experiment with PCA preprocessing)
 do_pca_preprocessing = False
@@ -43,9 +43,9 @@ if do_pca_preprocessing:
 
 
 # Parameters for neural network classifier
-n_hidden_units = 2      # number of hidden units
+n_hidden_units = 3      # number of hidden units
 n_replicates = 1        # number of networks trained in each k-fold
-max_iter = 10000
+max_iter = 3000
 
 # K-fold crossvalidation
 K = 3                   # only three folds to speed up this example
@@ -68,44 +68,53 @@ loss_fn = torch.nn.MSELoss() # notice how this is now a mean-squared-error loss
 print('Training model of type:\n\n{}\n'.format(str(model())))
 errors = [] # make a list for storing generalizaition error in each loop
 for (k, (train_index, test_index)) in enumerate(CV.split(X,y)): 
-    print('\nCrossvalidation fold: {0}/{1}'.format(k+1,K))    
-    
-    # Extract training and test set for current CV fold, convert to tensors
+    CV2 = model_selection.KFold(K, shuffle=True)
     X_train = torch.Tensor(X[train_index,:])
     y_train = torch.Tensor(y[train_index])
     X_test = torch.Tensor(X[test_index,:])
     y_test = torch.Tensor(y[test_index])
     
-    # Train the net on training data
-    net, final_loss, learning_curve = train_neural_net(model,
+
+    for (k2, (train_index2, test_index2)) in enumerate(CV.split(X_train,y_train)): 
+        print('\nCrossvalidation fold: {0}/{1}'.format(k+1,K))    
+    
+        # Extract training and test set for current CV fold, convert to tensors
+        X_train2 = torch.Tensor(X[train_index2,:])
+        y_train2 = torch.Tensor(y[train_index2])
+        X_test2 = torch.Tensor(X[test_index2,:])
+        y_test2 = torch.Tensor(y[test_index2])
+    
+        # Train the net on training data
+        net, final_loss, learning_curve = train_neural_net(model,
                                                        loss_fn,
-                                                       X=X_train,
-                                                       y=y_train,
+                                                       X=X_train2,
+                                                       y=y_train2,
                                                        n_replicates=n_replicates,
                                                        max_iter=max_iter)
     
-    print('\n\tBest loss: {}\n'.format(final_loss))
+        print('\n\tBest loss: {}\n'.format(final_loss))
     
-    # Determine estimated class labels for test set
-    y_test_est = net(X_test)
+        # Determine estimated class labels for test set
+        y_test_est = net(X_test2)
     
-    # Determine errors and errors
-    se = (y_test_est.float()-y_test.float())**2 # squared error
-    mse = (sum(se).type(torch.float)/len(y_test)).data.numpy() #mean
-    errors.append(mse) # store error rate for current CV fold 
+        # Determine errors and errors
+        se = (y_test_est.float()-y_test2.float())**2 # squared error
+        mse = (sum(se).type(torch.float)/len(y_test2)).data.numpy() #mean
+        errors.append(mse) # store error rate for current CV fold 
     
-    # Display the learning curve for the best net in the current fold
-    h, = summaries_axes[0].plot(learning_curve, color=color_list[k])
-    h.set_label('CV fold {0}'.format(k+1))
-    summaries_axes[0].set_xlabel('Iterations')
-    summaries_axes[0].set_xlim((0, max_iter))
-    summaries_axes[0].set_ylabel('Loss')
-    summaries_axes[0].set_title('Learning curves')
+        # Display the learning curve for the best net in the current fold
+        h, = summaries_axes[0].plot(learning_curve, color=color_list[k2])
+        h.set_label('CV fold {0}'.format(k2+1))
+        summaries_axes[0].set_xlabel('Iterations')
+        summaries_axes[0].set_xlim((0, max_iter))
+        summaries_axes[0].set_ylabel('Loss')
+        summaries_axes[0].set_title('Learning curves')
+    print('\nEstimated generalization error, RMSE: {0}'.format(round(np.sqrt(np.mean(errors)), 4)))
 
 # Display the MSE across folds
-summaries_axes[1].bar(np.arange(1, K+1), np.squeeze(np.asarray(errors)), color=color_list)
+summaries_axes[1].bar(np.arange(1, K*K+1), np.squeeze(np.asarray(errors)), color=color_list)
 summaries_axes[1].set_xlabel('Fold')
-summaries_axes[1].set_xticks(np.arange(1, K+1))
+summaries_axes[1].set_xticks(np.arange(1, K*K+1))
 summaries_axes[1].set_ylabel('MSE')
 summaries_axes[1].set_title('Test mean-squared-error')
     
@@ -124,7 +133,7 @@ print('\nEstimated generalization error, RMSE: {0}'.format(round(np.sqrt(np.mean
 # and if the points are above the line, the model overestimates, whereas if the
 # points are below the y=x line, then the model underestimates the value
 plt.figure(figsize=(10,10))
-y_est = y_test_est.data.numpy(); y_true = y_test.data.numpy()
+y_est = y_test_est.data.numpy(); y_true = y_test2.data.numpy()
 axis_range = [np.min([y_est, y_true])-1,np.max([y_est, y_true])+1]
 plt.plot(axis_range,axis_range,'k--')
 plt.plot(y_true, y_est,'ob',alpha=.25)
@@ -136,5 +145,3 @@ plt.ylabel('Estimated value')
 plt.grid()
 
 plt.show()
-
-print('Ran Exercise 8.2.6')
