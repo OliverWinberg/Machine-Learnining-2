@@ -35,8 +35,11 @@ N = len(y)
 M = len(attributeNames)
 C = len(classNames)
 
-X = X - np.ones((N,1))*X.mean(0)
-X = X*(1/np.std(X,0))
+# Transforming the data
+for i in range(7):
+    X[:,i] = X[:,i] - np.mean(X[:,i])
+    X[:,i] = X[:,i]*(1/np.std(X[:,i],0))
+
 
 ##Linear regression
 area_idx = attributeNames.index('Area')
