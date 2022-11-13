@@ -31,13 +31,14 @@ y = X[:,idx]
 X = np.delete(X,idx,1)
 N, M = X.shape
 
-lambdas = np.power(10.,range(-10,5))
+lambdas = np.power(10.,range(-5,5))
 K = 10   
-opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, y, lambdas, K)
+opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, genError = rlr_validate(X, y, lambdas, K)
+
 
 print(np.log10(opt_lambda))
 
-subplot(1,2,2)
+subplot(1,1,1)
 title('Optimal lambda: 1e{0}'.format(np.log10(opt_lambda)))
 loglog(lambdas,train_err_vs_lambda.T,'b.-',lambdas,test_err_vs_lambda.T,'r.-')
 xlabel('Regularization factor')
@@ -45,3 +46,6 @@ ylabel('Squared error (crossvalidation)')
 legend(['Train error','Validation error'])
 grid()
 show()
+
+res = np.array(genError)
+print(np.mean(res, axis=1))
