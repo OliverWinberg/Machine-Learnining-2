@@ -20,12 +20,17 @@ classLabels = doc.col_values(7,1,901)
 
 
 idx = attributeNames.index('Area')
+print(idx)
+
 X = np.empty((900,7))
 for i in range(7):
     X[:,i] = np.array(doc.col_values(i,1,901)).T
 # Normalize data
 X = stats.zscore(X)
 y = X[:,[idx]]
+X = np.delete(X,idx,1)
+
+attributeNames = attributeNames[1:]
 N, M = X.shape
 C = 2
 
@@ -43,12 +48,12 @@ if do_pca_preprocessing:
 
 
 # Parameters for neural network classifier
-n_hidden_units = 3     # number of hidden units
+n_hidden_units = 5     # number of hidden units
 n_replicates = 1        # number of networks trained in each k-fold
 max_iter = 5000
 
 # K-fold crossvalidation
-K = 2                   # only three folds to speed up this example
+K = 10                   # only three folds to speed up this example
 CV = model_selection.KFold(K, shuffle=True)
 
 # Setup figure for display of learning curves and error rates in fold
@@ -65,7 +70,7 @@ model = lambda: torch.nn.Sequential(
                     )
 loss_fn = torch.nn.MSELoss() # notice how this is now a mean-squared-error loss
 
-print('Training model of type:\n\n{}\n'.format(str(model())))
+# print('Training model of type:\n\n{}\n'.format(str(model())))
 errors = [] # make a list for storing generalizaition error in each loop
 errorsToPrint = []
 for (k, (train_index, test_index)) in enumerate(CV.split(X,y)): 
@@ -94,7 +99,7 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
                                                        n_replicates=n_replicates,
                                                        max_iter=max_iter)
     
-        print('\n\tBest loss: {}\n'.format(final_loss))
+        # print('\n\tBest loss: {}\n'.format(final_loss))
     
         # Determine estimated class labels for test set
         y_test_est = net(X_test2)

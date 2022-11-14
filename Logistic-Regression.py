@@ -62,6 +62,9 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
     min_errors = np.zeros(K)
     opt_lambdas = np.zeros(K)
     
+    yhat = []
+    y_true = []
+
     for (k2, (train_index2, test_index2)) in enumerate(CV2.split(X_train,y_train)): 
         print('\nCrossvalidation fold: {0}/{1}'.format(k+1,K))
         
@@ -71,7 +74,7 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
         X_test2 = X[test_index2,:]
         y_test2 = y[test_index2]
         
-        
+        dy = []
         for l in range(0, lambda_interval.size):
             mdl = LogisticRegression(penalty='l2', C=1/lambda_interval[l] )
             mdl.fit(X_train2, y_train2)
@@ -86,7 +89,15 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
         
             w_est = mdl.coef_[0] 
             coefficient_norm[l] = np.sqrt(np.sum(w_est**2))
-            
+
+            y_est = mdl.predict(X_test2)
+            dy.append(y_est)
+
+        dy = np.stack(dy, axis=1)
+        yhat.append(dy)
+        y_true.append(y_test)
+
+
         min_error = np.min(test_error_rate)
         opt_lambda_idx = np.argmin(test_error_rate)
         opt_lambda = lambda_interval[opt_lambda_idx]
@@ -95,6 +106,12 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
     print("min error:" + str(np.min(min_errors)))
     print("optimal lamda:" + str(opt_lambdas[np.argmin(min_errors)]))
     
+yhat = np.concatenate(yhat)
+y_true = np.concatenate(y_true)
+    
+print(yhat[:,0])
+print(y_true)
+print(y)
 
 # plt.figure(figsize=(8,8))
 # #plt.plot(np.log10(lambda_interval), train_error_rate*100)

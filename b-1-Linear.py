@@ -86,7 +86,7 @@ for train_index, test_index in CV.split(X,y):
     X_test = X[test_index]
     y_test = y[test_index]
     internal_cross_validation = 10    
-    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda = rlr_validate(X, y, lambdas, internal_cross_validation)
+    opt_val_err, opt_lambda, mean_w_vs_lambda, train_err_vs_lambda, test_err_vs_lambda, genError= rlr_validate(X, y, lambdas, internal_cross_validation)
     lamdasToPrint.append(opt_lambda)
     # Standardize outer fold based on training set, and save the mean and standard
     # deviations since they're part of the model (they would be needed for
