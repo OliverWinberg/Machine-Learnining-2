@@ -52,7 +52,7 @@ model = lambda: torch.nn.Sequential(
                     torch.nn.Sigmoid() # final tranfer function
                     )
 loss_fn = torch.nn.BCELoss()
-max_iter = 10000
+max_iter = 5000
 
     
     
@@ -68,7 +68,7 @@ coefficient_norm = np.zeros(len(lambda_interval))
 
 for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
     
-    CV2 = model_selection.KFold(K, shuffle=True)
+    CV2 = model_selection.KFold(4, shuffle=True)
     X_train = torch.Tensor(X[train_index,:])
     y_train = torch.Tensor(y[train_index]).unsqueeze(1)
     X_test = torch.Tensor(X[test_index,:])
@@ -88,7 +88,7 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
                                                            loss_fn,
                                                            X=X_train,
                                                            y=y_train,
-                                                           n_replicates=3,
+                                                           n_replicates=1,
                                                            max_iter=max_iter)
         
     
@@ -102,5 +102,5 @@ for (k, (train_index, test_index)) in enumerate(CV.split(X,y)):
         # Determine errors and error rate
         e = (y_test_est != y_test)
         error_rate = (sum(e).type(torch.float)/len(y_test)).data.numpy()
-    
+        
 
